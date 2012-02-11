@@ -1,0 +1,17 @@
+This is a stupid simple HTTP over Telnet over Telnet forwarder.
+
+Example usage :
+
+You have access to your company gateway router using telnet
+You want to access internal webserver from outside without using NAT 
+
+Let's give it a try :
+
+$ python HToTel2.py -p telnet_password -t your.public.ip.addr -d some.internal.server
+
+Open up a browser and browse to :
+http://locahost:23238
+
+Enjoy.
+
+All fixes and improvements are really welcome, I'm still a begginer in Python.
