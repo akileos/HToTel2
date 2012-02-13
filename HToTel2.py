@@ -1,6 +1,7 @@
 import sys
 import telnetlib
 import argparse
+import re
 from socket import *
 
 parser = argparse.ArgumentParser(description='HTTP over Telnet over Telnet Proxy')
@@ -12,7 +13,7 @@ args = parser.parse_args()
 
 s = socket(AF_INET, SOCK_STREAM)    # create a TCP socket
 s.bind(('', 23238))            # bind it to the server port
-s.listen(5)                         # allow 5 simultaneous pending connections
+s.listen(10)                         # allow 10 simultaneous pending connections
 
 tn = telnetlib.Telnet(args.hostname)
 
@@ -21,7 +22,8 @@ tn.write(args.password + "\n")
 # Wait for a Cisco ">" prompt
 print tn.read_until(">")
 print "Connected"
-
+tn.write("term len 0\n")
+print tn.read_until(">")
 while 1:
     # wait for next client to connect
 	connection, address = s.accept() # connection is a new socket
@@ -29,11 +31,13 @@ while 1:
 	buffer = ""
 	while 1:
 		data = connection.recv(102400) # receive up to 10K bytes
+		data = re.sub("Accept-Encoding.*[gzip|deflate].*\n","",data) # Strip unwanted headers
+		data = re.sub("Referer.*\n","",data)
 		if data:
 			# Open telnet connection to detination
 			tn.write("telnet "+args.destination+" 80\n")
 			# Wait 1 sec ... Ugly hack
-			print tn.read_until("Open",1)
+			tn.read_until("Open")
 			# Push data from browser to dest
 			tn.write(data+"\n")
 			# Wait for HTTP Headers in reply -- Ugly again
